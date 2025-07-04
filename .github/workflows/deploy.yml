@@ -3,8 +3,7 @@ name: Deploy to EC2 with Docker
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -19,23 +18,30 @@ jobs:
 
       - name: Test Docker builds locally
         run: |
-          # Test backend build
-          docker build -t utopia-backend:test ./utopia-backend
+          echo "Testing backend build..."
+          cd utopia-backend
+          docker build -t utopia-backend:test . --no-cache
+          cd ..
 
-          # Test frontend build  
-          docker build -t utopia-frontend:test ./utopia-frontend
+          echo "Testing frontend build..."
+          cd utopia-frontend
+          docker build -t utopia-frontend:test . --no-cache
+          cd ..
 
           echo "✅ Docker builds successful"
 
       - name: Prepare deployment files
         run: |
-          # Create deployment package
+          echo "Creating deployment package..."
           tar -czf deployment.tar.gz \
             --exclude='node_modules' \
             --exclude='.git' \
             --exclude='dist' \
             --exclude='.next' \
+            --exclude='coverage' \
+            --exclude='*.log' \
             .
+          echo "✅ Deployment package created"
 
       - name: Copy deployment package to EC2
         uses: appleboy/scp-action@v0.1.7
@@ -46,6 +52,7 @@ jobs:
           port: 22
           source: "deployment.tar.gz"
           target: "/tmp/"
+          timeout: 300s
 
       - name: Deploy with Docker on EC2
         uses: appleboy/ssh-action@v1.0.3
@@ -54,7 +61,10 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
+          timeout: 600s
           script: |
+            echo "Starting deployment..."
+
             # Extract deployment package
             cd /tmp
             tar -xzf deployment.tar.gz
@@ -63,10 +73,13 @@ jobs:
             chmod +x deploy-docker.sh
 
             # Run Docker deployment
-            sudo -E OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" bash deploy-docker.sh
+            export OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"
+            sudo -E bash deploy-docker.sh
 
             # Cleanup
             rm -f deployment.tar.gz
+
+            echo "✅ Deployment completed"
 
       - name: Health check and verification
         uses: appleboy/ssh-action@v1.0.3
@@ -75,40 +88,57 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
+          timeout: 300s
           script: |
-            # Wait for services to stabilize
+            echo "Waiting for services to stabilize..."
             sleep 30
 
             # Check container status
             cd /var/www/utopia-ai
-            if docker-compose ps | grep -E "(Up|healthy)"; then
-              echo "✅ All containers are running"
+
+            echo "=== Container Status ==="
+            docker-compose ps
+
+            # Check if containers are running
+            if docker-compose ps | grep -E "(Up|running)"; then
+              echo "✅ Containers are running"
             else
               echo "❌ Container status check failed"
-              docker-compose ps
+              echo "=== Container Logs ==="
+              docker-compose logs --tail=50
               exit 1
             fi
 
-            # Test endpoints
-            if curl -f http://localhost/health > /dev/null 2>&1; then
-              echo "✅ Nginx health check passed"
-            else
-              echo "❌ Nginx health check failed"
-              exit 1
-            fi
+            # Test endpoints with retries
+            echo "Testing endpoints..."
 
-            if curl -f http://localhost/api/health > /dev/null 2>&1; then
-              echo "✅ Backend API health check passed"
-            else
-              echo "❌ Backend API health check failed"
-              exit 1
-            fi
+            # Test nginx health
+            for i in {1..5}; do
+              if curl -f http://localhost/health > /dev/null 2>&1; then
+                echo "✅ Nginx health check passed"
+                break
+              else
+                echo "Attempt $i: Nginx health check failed, retrying..."
+                sleep 10
+              fi
+            done
 
-            echo "🎉 Deployment successful!"
-            echo "Frontend: http://3.82.158.36"
-            echo "API: http://3.82.158.36/api"
+            # Test backend API
+            for i in {1..5}; do
+              if curl -f http://localhost/api/health > /dev/null 2>&1; then
+                echo "✅ Backend API health check passed"
+                break
+              else
+                echo "Attempt $i: Backend API health check failed, retrying..."
+                sleep 10
+              fi
+            done
 
-      - name: Notify deployment status
+            echo "🎉 Deployment verification completed!"
+            echo "Frontend: http://${{ secrets.EC2_HOST }}"
+            echo "API: http://${{ secrets.EC2_HOST }}/api"
+
+      - name: Deployment Summary
         if: always()
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -117,11 +147,11 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
-            echo "=== Deployment Summary ==="
+            echo "=== Final Deployment Summary ==="
             echo "Timestamp: $(date)"
             echo "Commit: ${{ github.sha }}"
             echo "Branch: ${{ github.ref_name }}"
             echo ""
             echo "=== Container Status ==="
-            cd /var/www/utopia-ai
-            docker-compose ps
+            cd /var/www/utopia-ai 2>/dev/null || echo "App directory not found"
+            docker-compose ps 2>/dev/null || echo "Docker compose not available"

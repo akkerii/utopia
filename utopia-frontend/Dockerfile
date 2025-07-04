@@ -21,6 +21,9 @@ RUN pnpm run build
 # Production stage
 FROM node:20-alpine AS runner
 
+# Install curl for health checks
+RUN apk add --no-cache curl
+
 WORKDIR /app
 
 # Don't run production as root
@@ -30,7 +33,8 @@ RUN adduser --system --uid 1001 nextjs
 # Copy the public folder
 COPY --from=builder /app/public ./public
 
-# Copy the build output
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
@@ -38,6 +42,9 @@ USER nextjs
 
 # Expose port
 EXPOSE 3000
+
+ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
