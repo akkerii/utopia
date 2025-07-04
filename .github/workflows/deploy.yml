@@ -53,9 +53,36 @@ jobs:
       - name: Copy deployment package to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          host: "3.82.158.36"
+          username: "ubuntu"
+          key: |
+            -----BEGIN RSA PRIVATE KEY-----
+            MIIEpAIBAAKCAQEAyhobHGGRMAPYWOYw5wf0Aw7ndWc07j0TU51Gy6nkTC+Aesqu
+            +WhiFlk6mpykdxKy6VNDWRZsqHQ/pqFouEI1+XIjqUSOxzLOpvJdt/7dbSTSXBQe
+            WH63+B/CHtkmq1Mqa94LuJSoWQdZajatpAxFZzxTKHWxFBZn2Wo1JE3EbSrHDNvb
+            pCrrg7cWEHgbpb+KG8yd4hM/0m3+DAyvdZzhqhGgGsuUdtjQRDqYPFSBlUfrS0om
+            ZKQnZQWzjoKSdkRd/2ouGahl1/ZcIcNUkiF6t/VPtvaZ36ctNjkJQLIty5fIjHZN
+            iSF5KeueBUKlpO/V2M2QhAf27RL6EqyPvWbjrQIDAQABAoIBABo8oWBh2jNdjGye
+            FaMoiSkMekfnihuTmjq0pEg0Wgr577gBMA342yMDmnQP+dnrd4aK5KdgHeMQlGLR
+            eYLSNaeYhcCnwdFiaymJNVl5oM1Whmilw/rBGKkBlnXiwv5i4ZL3VJY11lUYeycq
+            yggN/8STNEiAXui4r+qtuxBneCSjuZaz1d/pgV5XgbvQKmhtrfP5J/VUGFJZdD/X
+            /alA/Na07otKQhxHlfaZhqyKHJiwSjPG4b2zfiN+bV9ogwp6GZEm/g2516+FVWHg
+            f22ZNBY80QwnJM03oqUVZP4yzi7gLY8Kh7k3qD3y7O2x+9w3h6YQLWc1lx0u9h02
+            6laMNxECgYEA/3H5VRIQxKZI+lD9O+gX32Rzp3Eo0a4kH1XWSjBx/bFaYo2jiw43
+            6TVB2PPamv099C8WZQ+gjM3DntFzyIXSV0IaKBJRoe4HHBBPisrFLIT55nyXlGFl
+            5ESI0Q1udkZEawfJAeORkvr9NaDLZ4QKnNoxhbwO3lcizT0r8ocenkcCgYEAyop5
+            MhZkvBzVAvmOL0d2INt7RDzMpv9JEdMXTFGa4VU3n8GbqHHYUd65R9OV6OqynoZx
+            7yuxxAY15hrhOFZajin6eTBiRvEgFpGThfRa7kqLgBEVNrVdkrOVMm9zAX1ubsC7
+            iOqLpIpOujd8IWrQKgW3QkjJH7lCwuoNchSBZGsCgYEAiXgHq112gq3OVk+hiEzG
+            FCWWDAVc50KlE+v4z6I0pkd8kc8RtTLoqetMTXomKgShA7kXfzmiuEO/w8eKXN6P
+            rP/Y3bnGDrPvRY4NkG7BH81MQ1rHpEWqNOchDggBa0szZLoi1Y5neEb0X5jx/fpU
+            T8cooYTsJ4GTLAqAjRtkQd8CgYAF8Wg6+wM7rdDmRHJSmtMxhZ8pUmti3wzC1CHT
+            4HUd9YUrT+AEYkrJpDJllCTK79AL7L/9F5ggu1nrhZBkOcxwbXTnB29qy3p4jw74
+            GEJuyYssV9P6hfnX6yMOlsyWF5sc7tTR4Kf2TQSgXC5tQJgZE4/cBwy3vJTj6UA5
+            v7ZIPwKBgQCVScU+TXmj9U80eezrWZ7i0tRbdtkc3x60wp9qRprOC23JlJN4+KEO
+            bNX6T225u30OiAU+bUZ4vPcKwX69YldzrER+rtspvAg80qGq6vparX0m3phisfAg
+            TA1nM2nJQM4vQceuothYxhc/ksE7oDYSlKECC0/u+6jYUp8G8lWuWg==
+            -----END RSA PRIVATE KEY-----
           port: 22
           source: "deployment.tar.gz"
           target: "/tmp/"
@@ -65,9 +92,36 @@ jobs:
       - name: Deploy with Docker on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          host: "3.82.158.36"
+          username: "ubuntu"
+          key: |
+            -----BEGIN RSA PRIVATE KEY-----
+            MIIEpAIBAAKCAQEAyhobHGGRMAPYWOYw5wf0Aw7ndWc07j0TU51Gy6nkTC+Aesqu
+            +WhiFlk6mpykdxKy6VNDWRZsqHQ/pqFouEI1+XIjqUSOxzLOpvJdt/7dbSTSXBQe
+            WH63+B/CHtkmq1Mqa94LuJSoWQdZajatpAxFZzxTKHWxFBZn2Wo1JE3EbSrHDNvb
+            pCrrg7cWEHgbpb+KG8yd4hM/0m3+DAyvdZzhqhGgGsuUdtjQRDqYPFSBlUfrS0om
+            ZKQnZQWzjoKSdkRd/2ouGahl1/ZcIcNUkiF6t/VPtvaZ36ctNjkJQLIty5fIjHZN
+            iSF5KeueBUKlpO/V2M2QhAf27RL6EqyPvWbjrQIDAQABAoIBABo8oWBh2jNdjGye
+            FaMoiSkMekfnihuTmjq0pEg0Wgr577gBMA342yMDmnQP+dnrd4aK5KdgHeMQlGLR
+            eYLSNaeYhcCnwdFiaymJNVl5oM1Whmilw/rBGKkBlnXiwv5i4ZL3VJY11lUYeycq
+            yggN/8STNEiAXui4r+qtuxBneCSjuZaz1d/pgV5XgbvQKmhtrfP5J/VUGFJZdD/X
+            /alA/Na07otKQhxHlfaZhqyKHJiwSjPG4b2zfiN+bV9ogwp6GZEm/g2516+FVWHg
+            f22ZNBY80QwnJM03oqUVZP4yzi7gLY8Kh7k3qD3y7O2x+9w3h6YQLWc1lx0u9h02
+            6laMNxECgYEA/3H5VRIQxKZI+lD9O+gX32Rzp3Eo0a4kH1XWSjBx/bFaYo2jiw43
+            6TVB2PPamv099C8WZQ+gjM3DntFzyIXSV0IaKBJRoe4HHBBPisrFLIT55nyXlGFl
+            5ESI0Q1udkZEawfJAeORkvr9NaDLZ4QKnNoxhbwO3lcizT0r8ocenkcCgYEAyop5
+            MhZkvBzVAvmOL0d2INt7RDzMpv9JEdMXTFGa4VU3n8GbqHHYUd65R9OV6OqynoZx
+            7yuxxAY15hrhOFZajin6eTBiRvEgFpGThfRa7kqLgBEVNrVdkrOVMm9zAX1ubsC7
+            iOqLpIpOujd8IWrQKgW3QkjJH7lCwuoNchSBZGsCgYEAiXgHq112gq3OVk+hiEzG
+            FCWWDAVc50KlE+v4z6I0pkd8kc8RtTLoqetMTXomKgShA7kXfzmiuEO/w8eKXN6P
+            rP/Y3bnGDrPvRY4NkG7BH81MQ1rHpEWqNOchDggBa0szZLoi1Y5neEb0X5jx/fpU
+            T8cooYTsJ4GTLAqAjRtkQd8CgYAF8Wg6+wM7rdDmRHJSmtMxhZ8pUmti3wzC1CHT
+            4HUd9YUrT+AEYkrJpDJllCTK79AL7L/9F5ggu1nrhZBkOcxwbXTnB29qy3p4jw74
+            GEJuyYssV9P6hfnX6yMOlsyWF5sc7tTR4Kf2TQSgXC5tQJgZE4/cBwy3vJTj6UA5
+            v7ZIPwKBgQCVScU+TXmj9U80eezrWZ7i0tRbdtkc3x60wp9qRprOC23JlJN4+KEO
+            bNX6T225u30OiAU+bUZ4vPcKwX69YldzrER+rtspvAg80qGq6vparX0m3phisfAg
+            TA1nM2nJQM4vQceuothYxhc/ksE7oDYSlKECC0/u+6jYUp8G8lWuWg==
+            -----END RSA PRIVATE KEY-----
           port: 22
           timeout: 600s
           script: |
@@ -86,15 +140,42 @@ jobs:
 
             # Cleanup
             rm -f deployment.tar.gz
- 
+
             echo "✅ Deployment completed"
 
       - name: Health check and verification
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          host: "3.82.158.36"
+          username: "ubuntu"
+          key: |
+            -----BEGIN RSA PRIVATE KEY-----
+            MIIEpAIBAAKCAQEAyhobHGGRMAPYWOYw5wf0Aw7ndWc07j0TU51Gy6nkTC+Aesqu
+            +WhiFlk6mpykdxKy6VNDWRZsqHQ/pqFouEI1+XIjqUSOxzLOpvJdt/7dbSTSXBQe
+            WH63+B/CHtkmq1Mqa94LuJSoWQdZajatpAxFZzxTKHWxFBZn2Wo1JE3EbSrHDNvb
+            pCrrg7cWEHgbpb+KG8yd4hM/0m3+DAyvdZzhqhGgGsuUdtjQRDqYPFSBlUfrS0om
+            ZKQnZQWzjoKSdkRd/2ouGahl1/ZcIcNUkiF6t/VPtvaZ36ctNjkJQLIty5fIjHZN
+            iSF5KeueBUKlpO/V2M2QhAf27RL6EqyPvWbjrQIDAQABAoIBABo8oWBh2jNdjGye
+            FaMoiSkMekfnihuTmjq0pEg0Wgr577gBMA342yMDmnQP+dnrd4aK5KdgHeMQlGLR
+            eYLSNaeYhcCnwdFiaymJNVl5oM1Whmilw/rBGKkBlnXiwv5i4ZL3VJY11lUYeycq
+            yggN/8STNEiAXui4r+qtuxBneCSjuZaz1d/pgV5XgbvQKmhtrfP5J/VUGFJZdD/X
+            /alA/Na07otKQhxHlfaZhqyKHJiwSjPG4b2zfiN+bV9ogwp6GZEm/g2516+FVWHg
+            f22ZNBY80QwnJM03oqUVZP4yzi7gLY8Kh7k3qD3y7O2x+9w3h6YQLWc1lx0u9h02
+            6laMNxECgYEA/3H5VRIQxKZI+lD9O+gX32Rzp3Eo0a4kH1XWSjBx/bFaYo2jiw43
+            6TVB2PPamv099C8WZQ+gjM3DntFzyIXSV0IaKBJRoe4HHBBPisrFLIT55nyXlGFl
+            5ESI0Q1udkZEawfJAeORkvr9NaDLZ4QKnNoxhbwO3lcizT0r8ocenkcCgYEAyop5
+            MhZkvBzVAvmOL0d2INt7RDzMpv9JEdMXTFGa4VU3n8GbqHHYUd65R9OV6OqynoZx
+            7yuxxAY15hrhOFZajin6eTBiRvEgFpGThfRa7kqLgBEVNrVdkrOVMm9zAX1ubsC7
+            iOqLpIpOujd8IWrQKgW3QkjJH7lCwuoNchSBZGsCgYEAiXgHq112gq3OVk+hiEzG
+            FCWWDAVc50KlE+v4z6I0pkd8kc8RtTLoqetMTXomKgShA7kXfzmiuEO/w8eKXN6P
+            rP/Y3bnGDrPvRY4NkG7BH81MQ1rHpEWqNOchDggBa0szZLoi1Y5neEb0X5jx/fpU
+            T8cooYTsJ4GTLAqAjRtkQd8CgYAF8Wg6+wM7rdDmRHJSmtMxhZ8pUmti3wzC1CHT
+            4HUd9YUrT+AEYkrJpDJllCTK79AL7L/9F5ggu1nrhZBkOcxwbXTnB29qy3p4jw74
+            GEJuyYssV9P6hfnX6yMOlsyWF5sc7tTR4Kf2TQSgXC5tQJgZE4/cBwy3vJTj6UA5
+            v7ZIPwKBgQCVScU+TXmj9U80eezrWZ7i0tRbdtkc3x60wp9qRprOC23JlJN4+KEO
+            bNX6T225u30OiAU+bUZ4vPcKwX69YldzrER+rtspvAg80qGq6vparX0m3phisfAg
+            TA1nM2nJQM4vQceuothYxhc/ksE7oDYSlKECC0/u+6jYUp8G8lWuWg==
+            -----END RSA PRIVATE KEY-----
           port: 22
           timeout: 300s
           script: |
@@ -143,16 +224,43 @@ jobs:
             done
 
             echo "🎉 Deployment verification completed!"
-            echo "Frontend: http://${{ secrets.EC2_HOST }}"
-            echo "API: http://${{ secrets.EC2_HOST }}/api"
+            echo "Frontend: http://3.82.158.36"
+            echo "API: http://3.82.158.36/api"
 
       - name: Deployment Summary
         if: always()
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          host: "3.82.158.36"
+          username: "ubuntu"
+          key: |
+            -----BEGIN RSA PRIVATE KEY-----
+            MIIEpAIBAAKCAQEAyhobHGGRMAPYWOYw5wf0Aw7ndWc07j0TU51Gy6nkTC+Aesqu
+            +WhiFlk6mpykdxKy6VNDWRZsqHQ/pqFouEI1+XIjqUSOxzLOpvJdt/7dbSTSXBQe
+            WH63+B/CHtkmq1Mqa94LuJSoWQdZajatpAxFZzxTKHWxFBZn2Wo1JE3EbSrHDNvb
+            pCrrg7cWEHgbpb+KG8yd4hM/0m3+DAyvdZzhqhGgGsuUdtjQRDqYPFSBlUfrS0om
+            ZKQnZQWzjoKSdkRd/2ouGahl1/ZcIcNUkiF6t/VPtvaZ36ctNjkJQLIty5fIjHZN
+            iSF5KeueBUKlpO/V2M2QhAf27RL6EqyPvWbjrQIDAQABAoIBABo8oWBh2jNdjGye
+            FaMoiSkMekfnihuTmjq0pEg0Wgr577gBMA342yMDmnQP+dnrd4aK5KdgHeMQlGLR
+            eYLSNaeYhcCnwdFiaymJNVl5oM1Whmilw/rBGKkBlnXiwv5i4ZL3VJY11lUYeycq
+            yggN/8STNEiAXui4r+qtuxBneCSjuZaz1d/pgV5XgbvQKmhtrfP5J/VUGFJZdD/X
+            /alA/Na07otKQhxHlfaZhqyKHJiwSjPG4b2zfiN+bV9ogwp6GZEm/g2516+FVWHg
+            f22ZNBY80QwnJM03oqUVZP4yzi7gLY8Kh7k3qD3y7O2x+9w3h6YQLWc1lx0u9h02
+            6laMNxECgYEA/3H5VRIQxKZI+lD9O+gX32Rzp3Eo0a4kH1XWSjBx/bFaYo2jiw43
+            6TVB2PPamv099C8WZQ+gjM3DntFzyIXSV0IaKBJRoe4HHBBPisrFLIT55nyXlGFl
+            5ESI0Q1udkZEawfJAeORkvr9NaDLZ4QKnNoxhbwO3lcizT0r8ocenkcCgYEAyop5
+            MhZkvBzVAvmOL0d2INt7RDzMpv9JEdMXTFGa4VU3n8GbqHHYUd65R9OV6OqynoZx
+            7yuxxAY15hrhOFZajin6eTBiRvEgFpGThfRa7kqLgBEVNrVdkrOVMm9zAX1ubsC7
+            iOqLpIpOujd8IWrQKgW3QkjJH7lCwuoNchSBZGsCgYEAiXgHq112gq3OVk+hiEzG
+            FCWWDAVc50KlE+v4z6I0pkd8kc8RtTLoqetMTXomKgShA7kXfzmiuEO/w8eKXN6P
+            rP/Y3bnGDrPvRY4NkG7BH81MQ1rHpEWqNOchDggBa0szZLoi1Y5neEb0X5jx/fpU
+            T8cooYTsJ4GTLAqAjRtkQd8CgYAF8Wg6+wM7rdDmRHJSmtMxhZ8pUmti3wzC1CHT
+            4HUd9YUrT+AEYkrJpDJllCTK79AL7L/9F5ggu1nrhZBkOcxwbXTnB29qy3p4jw74
+            GEJuyYssV9P6hfnX6yMOlsyWF5sc7tTR4Kf2TQSgXC5tQJgZE4/cBwy3vJTj6UA5
+            v7ZIPwKBgQCVScU+TXmj9U80eezrWZ7i0tRbdtkc3x60wp9qRprOC23JlJN4+KEO
+            bNX6T225u30OiAU+bUZ4vPcKwX69YldzrER+rtspvAg80qGq6vparX0m3phisfAg
+            TA1nM2nJQM4vQceuothYxhc/ksE7oDYSlKECC0/u+6jYUp8G8lWuWg==
+            -----END RSA PRIVATE KEY-----
           port: 22
           script: |
             echo "=== Final Deployment Summary ==="
