@@ -12,6 +12,9 @@ RUN npm install -g pnpm
 # Install dependencies
 RUN pnpm install
 
+# Approve build scripts for packages that need them
+RUN pnpm rebuild
+
 # Copy source code
 COPY . .
 
