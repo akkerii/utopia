@@ -163,8 +163,18 @@ jobs:
 
             # Navigate to app directory and start containers
             cd /var/www/utopia-ai
+
+            echo "Stopping any existing containers..."
             docker-compose down || true
-            docker-compose --env-file .env up -d --build
+
+            echo "Building containers..."
+            docker-compose --env-file .env build
+
+            echo "Starting containers..."
+            docker-compose --env-file .env up -d
+
+            echo "Checking container logs..."
+            docker-compose --env-file .env logs
 
             echo "✅ Initial deployment completed"
 
@@ -218,7 +228,7 @@ jobs:
             else
               echo "❌ Container status check failed"
               echo "=== Container Logs ==="
-              docker-compose --env-file .env logs --tail=50
+              docker-compose --env-file .env logs
               exit 1
             fi
 
