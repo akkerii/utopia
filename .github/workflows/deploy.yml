@@ -86,7 +86,7 @@ jobs:
 
             # Cleanup
             rm -f deployment.tar.gz
-
+ 
             echo "✅ Deployment completed"
 
       - name: Health check and verification
