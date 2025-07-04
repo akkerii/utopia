@@ -33,14 +33,21 @@ jobs:
       - name: Prepare deployment files
         run: |
           echo "Creating deployment package..."
-          tar -czf deployment.tar.gz \
-            --exclude='node_modules' \
-            --exclude='.git' \
-            --exclude='dist' \
-            --exclude='.next' \
-            --exclude='coverage' \
-            --exclude='*.log' \
-            .
+          # Create a temporary directory for the files we want to package
+          mkdir -p /tmp/deploy-pkg
+          # Copy files to temporary directory, excluding unwanted paths
+          rsync -av --exclude='node_modules' \
+                    --exclude='.git' \
+                    --exclude='dist' \
+                    --exclude='.next' \
+                    --exclude='coverage' \
+                    --exclude='*.log' \
+                    . /tmp/deploy-pkg/
+          # Create tar from the temporary directory
+          cd /tmp/deploy-pkg
+          tar -czf ../deployment.tar.gz .
+          cd -
+          mv /tmp/deployment.tar.gz .
           echo "✅ Deployment package created"
 
       - name: Copy deployment package to EC2
@@ -79,7 +86,7 @@ jobs:
             # Cleanup
             rm -f deployment.tar.gz
 
-            echo "✅ Deployment completed" 
+            echo "✅ Deployment completed"
 
       - name: Health check and verification
         uses: appleboy/ssh-action@v1.0.3
