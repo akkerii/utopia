@@ -7,7 +7,7 @@ This guide will help you deploy the Utopia AI application to your server at 13.2
 1. **Server Requirements:**
 
    - Ubuntu 20.04 LTS or newer (Debian-based)
-   - Minimum 2GB RAM
+   - Minimum 2GB RAMs
    - 20GB available disk space
    - Root or sudo access
 
