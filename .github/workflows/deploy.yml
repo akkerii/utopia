@@ -52,29 +52,22 @@ jobs:
 
       - name: Copy deployment package to EC2
         uses: appleboy/scp-action@v0.1.7
-        env:
-          HOST: ${{ secrets.EC2_HOST }}
-          USERNAME: ${{ secrets.EC2_USERNAME }}
-          KEY: ${{ secrets.EC2_SSH_KEY }}
         with:
-          host: ${{ env.HOST }}
-          username: ${{ env.USERNAME }}
-          key: ${{ env.KEY }}
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           source: "deployment.tar.gz"
           target: "/tmp/"
           timeout: 300s
+          strip_components: 0
 
       - name: Deploy with Docker on EC2
         uses: appleboy/ssh-action@v1.0.3
-        env:
-          HOST: ${{ secrets.EC2_HOST }}
-          USERNAME: ${{ secrets.EC2_USERNAME }}
-          KEY: ${{ secrets.EC2_SSH_KEY }}
         with:
-          host: ${{ env.HOST }}
-          username: ${{ env.USERNAME }}
-          key: ${{ env.KEY }}
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           timeout: 600s
           script: |
@@ -98,14 +91,10 @@ jobs:
 
       - name: Health check and verification
         uses: appleboy/ssh-action@v1.0.3
-        env:
-          HOST: ${{ secrets.EC2_HOST }}
-          USERNAME: ${{ secrets.EC2_USERNAME }}
-          KEY: ${{ secrets.EC2_SSH_KEY }}
         with:
-          host: ${{ env.HOST }}
-          username: ${{ env.USERNAME }}
-          key: ${{ env.KEY }}
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           timeout: 300s
           script: |
@@ -160,14 +149,10 @@ jobs:
       - name: Deployment Summary
         if: always()
         uses: appleboy/ssh-action@v1.0.3
-        env:
-          HOST: ${{ secrets.EC2_HOST }}
-          USERNAME: ${{ secrets.EC2_USERNAME }}
-          KEY: ${{ secrets.EC2_SSH_KEY }}
         with:
-          host: ${{ env.HOST }}
-          username: ${{ env.USERNAME }}
-          key: ${{ env.KEY }}
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
             echo "=== Final Deployment Summary ==="
