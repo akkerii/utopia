@@ -109,7 +109,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   const handleModuleClick = (moduleType: ModuleType) => {
     const accessible = isModuleAccessible(moduleType, completedModules);
-    if (accessible) {
+    if (accessible && onModuleClick) {
       onModuleClick(moduleType);
     }
   };
