@@ -88,7 +88,7 @@ jobs:
           target: "/tmp/"
           timeout: 300s
           strip_components: 0
-
+ 
       - name: Deploy with Docker on EC2
         uses: appleboy/ssh-action@v1.0.3
         env:
