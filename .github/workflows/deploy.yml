@@ -91,6 +91,8 @@ jobs:
 
       - name: Deploy with Docker on EC2
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         with:
           host: "3.82.158.36"
           username: "ubuntu"
@@ -124,6 +126,7 @@ jobs:
             -----END RSA PRIVATE KEY-----
           port: 22
           timeout: 600s
+          envs: OPENAI_API_KEY
           script: |
             echo "Setting up environment..."
 
@@ -155,10 +158,13 @@ jobs:
             cd /tmp
             tar -xzf deployment.tar.gz -C /var/www/utopia-ai
 
+            # Create .env file with OpenAI API key
+            echo "OPENAI_API_KEY=${OPENAI_API_KEY}" > /var/www/utopia-ai/.env
+
             # Navigate to app directory and start containers
             cd /var/www/utopia-ai
             docker-compose down || true
-            docker-compose up -d --build
+            docker-compose --env-file .env up -d --build
 
             echo "✅ Initial deployment completed"
 
@@ -204,15 +210,15 @@ jobs:
             cd /var/www/utopia-ai
 
             echo "=== Container Status ==="
-            docker-compose ps
+            docker-compose --env-file .env ps
 
             # Check if containers are running
-            if docker-compose ps | grep -E "(Up|running)"; then
+            if docker-compose --env-file .env ps | grep -E "(Up|running)"; then
               echo "✅ Containers are running"
             else
               echo "❌ Container status check failed"
               echo "=== Container Logs ==="
-              docker-compose logs --tail=50
+              docker-compose --env-file .env logs --tail=50
               exit 1
             fi
 
