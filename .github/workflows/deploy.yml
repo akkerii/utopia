@@ -1,0 +1,127 @@
+name: Deploy to EC2 with Docker
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Test Docker builds locally
+        run: |
+          # Test backend build
+          docker build -t utopia-backend:test ./utopia-backend
+
+          # Test frontend build  
+          docker build -t utopia-frontend:test ./utopia-frontend
+
+          echo "✅ Docker builds successful"
+
+      - name: Prepare deployment files
+        run: |
+          # Create deployment package
+          tar -czf deployment.tar.gz \
+            --exclude='node_modules' \
+            --exclude='.git' \
+            --exclude='dist' \
+            --exclude='.next' \
+            .
+
+      - name: Copy deployment package to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          source: "deployment.tar.gz"
+          target: "/tmp/"
+
+      - name: Deploy with Docker on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            # Extract deployment package
+            cd /tmp
+            tar -xzf deployment.tar.gz
+
+            # Make deployment script executable
+            chmod +x deploy-docker.sh
+
+            # Run Docker deployment
+            sudo -E OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" bash deploy-docker.sh
+
+            # Cleanup
+            rm -f deployment.tar.gz
+
+      - name: Health check and verification
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            # Wait for services to stabilize
+            sleep 30
+
+            # Check container status
+            cd /var/www/utopia-ai
+            if docker-compose ps | grep -E "(Up|healthy)"; then
+              echo "✅ All containers are running"
+            else
+              echo "❌ Container status check failed"
+              docker-compose ps
+              exit 1
+            fi
+
+            # Test endpoints
+            if curl -f http://localhost/health > /dev/null 2>&1; then
+              echo "✅ Nginx health check passed"
+            else
+              echo "❌ Nginx health check failed"
+              exit 1
+            fi
+
+            if curl -f http://localhost/api/health > /dev/null 2>&1; then
+              echo "✅ Backend API health check passed"
+            else
+              echo "❌ Backend API health check failed"
+              exit 1
+            fi
+
+            echo "🎉 Deployment successful!"
+            echo "Frontend: http://3.82.158.36"
+            echo "API: http://3.82.158.36/api"
+
+      - name: Notify deployment status
+        if: always()
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            echo "=== Deployment Summary ==="
+            echo "Timestamp: $(date)"
+            echo "Commit: ${{ github.sha }}"
+            echo "Branch: ${{ github.ref_name }}"
+            echo ""
+            echo "=== Container Status ==="
+            cd /var/www/utopia-ai
+            docker-compose ps
