@@ -7,10 +7,13 @@ import {
   ModuleUpdate,
   Mode,
   ModuleType,
+  Question,
+  QuestionResponse,
 } from "../types";
 import { sessionService } from "./sessionService";
 import { openAIService } from "./openAIService";
 import { AgentOrchestrator } from "../agents/agentOrchestrator";
+import { QuestionService } from "./questionService";
 
 class ChatService {
   async processMessage(request: ChatRequest): Promise<ChatResponse> {
@@ -28,6 +31,14 @@ class ChatService {
     }
 
     try {
+      // Handle question response if provided
+      if (request.questionResponse) {
+        return await this.handleQuestionResponse(
+          session,
+          request.questionResponse
+        );
+      }
+
       // Add user message to conversation history
       const userMessage: ConversationMessage = {
         id: uuidv4(),
@@ -100,14 +111,19 @@ class ChatService {
         context
       );
 
+      // Parse questions from AI response
+      const questions = QuestionService.parseQuestions(aiResponse);
+      const cleanedResponse = QuestionService.cleanResponseText(aiResponse);
+
       // Add AI response to conversation history
       const assistantMessage: ConversationMessage = {
         id: uuidv4(),
         role: "assistant",
-        content: aiResponse,
+        content: cleanedResponse,
         agent: agentDecision.agent,
         module: session.currentModule,
         timestamp: new Date(),
+        questions: questions.length > 0 ? questions : undefined,
       };
       session.conversationHistory.push(assistantMessage);
 
@@ -116,7 +132,7 @@ class ChatService {
 
       if (session.currentModule) {
         // Try to extract structured data from the conversation
-        const combinedText = `User: ${request.message}\nAssistant: ${aiResponse}`;
+        const combinedText = `User: ${request.message}\nAssistant: ${cleanedResponse}`;
         const extractedData = await openAIService.extractStructuredData(
           combinedText,
           session.currentModule
@@ -153,15 +169,152 @@ class ChatService {
       sessionService.updateSession(session.id, session);
 
       return {
-        message: aiResponse,
+        message: cleanedResponse,
         sessionId: session.id,
         agent: session.currentAgent,
         currentModule: session.currentModule,
         isModuleTransition,
         updatedModules,
+        questions: questions.length > 0 ? questions : undefined,
       };
     } catch (error) {
       console.error("Error processing message:", error);
+      throw error;
+    }
+  }
+
+  // Handle question response
+  async handleQuestionResponse(
+    session: Session,
+    questionResponse: QuestionResponse
+  ): Promise<ChatResponse> {
+    try {
+      // Find the question in the conversation history
+      let question: Question | undefined;
+      let messageWithQuestion: ConversationMessage | undefined;
+
+      // Look for the question in recent messages
+      for (let i = session.conversationHistory.length - 1; i >= 0; i--) {
+        const message = session.conversationHistory[i];
+        if (message.questions) {
+          question = message.questions.find(
+            (q) => q.id === questionResponse.questionId
+          );
+          if (question) {
+            messageWithQuestion = message;
+            break;
+          }
+        }
+      }
+
+      if (!question || !messageWithQuestion) {
+        throw new Error("Question not found");
+      }
+
+      // Validate the response
+      const validation = QuestionService.validateQuestionResponse(
+        question,
+        questionResponse.answer
+      );
+      if (!validation.isValid) {
+        throw new Error(validation.error || "Invalid response");
+      }
+
+      // Add question response to message
+      if (!messageWithQuestion.questionResponses) {
+        messageWithQuestion.questionResponses = [];
+      }
+      messageWithQuestion.questionResponses.push(questionResponse);
+
+      // Generate contextual follow-up
+      const followUpContext = QuestionService.generateFollowUpContext(
+        question,
+        questionResponse
+      );
+      const formattedResponse = QuestionService.formatResponseForAI(
+        question,
+        questionResponse
+      );
+
+      // Build enhanced context
+      const context = this.buildEnhancedAgentContext(session);
+      const fullContext = `${context}\n\nUser just answered a question:\n${formattedResponse}\n\n${followUpContext}`;
+
+      // Generate AI follow-up response
+      const aiResponse = await openAIService.generateAgentResponse(
+        session.currentAgent,
+        followUpContext,
+        fullContext
+      );
+
+      // Parse questions from AI response
+      const questions = QuestionService.parseQuestions(aiResponse);
+      const cleanedResponse = QuestionService.cleanResponseText(aiResponse);
+
+      // Add AI response to conversation history
+      const assistantMessage: ConversationMessage = {
+        id: uuidv4(),
+        role: "assistant",
+        content: cleanedResponse,
+        agent: session.currentAgent,
+        module: session.currentModule,
+        timestamp: new Date(),
+        questions: questions.length > 0 ? questions : undefined,
+      };
+      session.conversationHistory.push(assistantMessage);
+
+      // Extract and update module data
+      const updatedModules: ModuleUpdate[] = [];
+
+      if (session.currentModule) {
+        // Include the question response in the data extraction
+        const combinedText = `Question: ${question.text}\nAnswer: ${questionResponse.answer}\nAssistant: ${cleanedResponse}`;
+        const extractedData = await openAIService.extractStructuredData(
+          combinedText,
+          session.currentModule
+        );
+
+        if (Object.keys(extractedData).length > 0) {
+          // Generate a summary
+          const summary = await openAIService.generateModuleSummary(
+            session.currentModule,
+            extractedData
+          );
+
+          // Update the context bucket
+          const updatedBucket = sessionService.updateContextBucket(
+            session.id,
+            session.currentModule,
+            extractedData,
+            summary
+          );
+
+          if (updatedBucket) {
+            updatedModules.push({
+              moduleType: session.currentModule,
+              data: updatedBucket.data,
+              summary: updatedBucket.summary || "",
+              completionStatus: updatedBucket.completionStatus,
+            });
+          }
+        }
+      }
+
+      // Update session's last active time
+      session.lastActive = new Date();
+      sessionService.updateSession(session.id, session);
+
+      return {
+        message: cleanedResponse,
+        sessionId: session.id,
+        agent: session.currentAgent,
+        currentModule: session.currentModule,
+        isModuleTransition: false,
+        updatedModules,
+        questions: questions.length > 0 ? questions : undefined,
+      };
+    } catch (error) {
+      console.error("Error handling question response:", error);
       throw error;
     }
   }

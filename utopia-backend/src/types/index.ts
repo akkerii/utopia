@@ -23,6 +23,24 @@ export enum ModuleType {
   FINANCIAL_PLAN = "financial_plan",
 }
 
+// Interactive Question Structure
+export interface Question {
+  id: string;
+  text: string;
+  type: "open" | "choice" | "numeric" | "yes_no";
+  options?: string[];
+  required?: boolean;
+  followUp?: string;
+  context?: string;
+}
+
+// Question Response
+export interface QuestionResponse {
+  questionId: string;
+  answer: string;
+  timestamp: Date;
+}
+
 // Context bucket for storing module data
 export interface ContextBucket {
   id: string;
@@ -53,6 +71,8 @@ export interface ConversationMessage {
   agent?: AgentType;
   module?: ModuleType;
   timestamp: Date;
+  questions?: Question[];
+  questionResponses?: QuestionResponse[];
 }
 
 // Chat request from client
@@ -60,6 +80,7 @@ export interface ChatRequest {
   sessionId?: string;
   message: string;
   mode?: Mode;
+  questionResponse?: QuestionResponse;
 }
 
 // Chat response to client
@@ -71,6 +92,7 @@ export interface ChatResponse {
   updatedModules?: ModuleUpdate[];
   suggestedNextModule?: ModuleType;
   isModuleTransition?: boolean;
+  questions?: Question[];
 }
 
 // Module update notification

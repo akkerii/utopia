@@ -9,9 +9,28 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || "0.0.0.0"; // Listen on all network interfaces
+
+// CORS configuration
+const corsOptions = {
+  origin: [
+    "https://acc2-41-225-32-168.ngrok-free.app",
+    "https://indicates-resistance-ira-supposed.trycloudflare.com/",
+    "http://localhost:3000",
+    "http://localhost:3001",
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "ngrok-skip-browser-warning",
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
 
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -46,9 +65,9 @@ app.use(
 );
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Utopia AI Backend running on port ${PORT}`);
-  console.log(`📍 API available at http://localhost:${PORT}/api`);
+app.listen(PORT, HOST, () => {
+  console.log(`🚀 Utopia AI Backend running on ${HOST}:${PORT}`);
+  console.log(`📍 API available at http://${HOST}:${PORT}/api`);
 
   // Check for OpenAI API key
   if (!process.env.OPENAI_API_KEY) {

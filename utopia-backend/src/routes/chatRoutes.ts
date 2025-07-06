@@ -1,16 +1,18 @@
-import { Router, Request, Response } from "express";
+import { Router, RequestHandler } from "express";
 import { chatService } from "../services/chatService";
-import { ChatRequest } from "../types";
+import { ChatRequest, QuestionResponse } from "../types";
 
 const router = Router();
 
 // Process a chat message
-router.post("/chat", async (req: Request, res: Response) => {
+const handleChat: RequestHandler = async (req, res): Promise<void> => {
   try {
     const chatRequest: ChatRequest = req.body;
 
-    if (!chatRequest.message) {
-      res.status(400).json({ error: "Message is required" });
+    if (!chatRequest.message && !chatRequest.questionResponse) {
+      res
+        .status(400)
+        .json({ error: "Message or question response is required" });
       return;
     }
 
@@ -20,10 +22,45 @@ router.post("/chat", async (req: Request, res: Response) => {
     console.error("Chat endpoint error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
-});
+};
+
+// Handle question response specifically
+const handleQuestionResponse: RequestHandler = async (
+  req,
+  res
+): Promise<void> => {
+  try {
+    const { sessionId, questionId, answer } = req.body;
+
+    if (!sessionId || !questionId || !answer) {
+      res
+        .status(400)
+        .json({ error: "Session ID, question ID, and answer are required" });
+      return;
+    }
+
+    const questionResponse: QuestionResponse = {
+      questionId,
+      answer,
+      timestamp: new Date(),
+    };
+
+    const chatRequest: ChatRequest = {
+      sessionId,
+      message: "", // Empty message for question responses
+      questionResponse,
+    };
+
+    const response = await chatService.processMessage(chatRequest);
+    res.json(response);
+  } catch (error) {
+    console.error("Question response endpoint error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 
 // Get session data
-router.get("/session/:sessionId", async (req: Request, res: Response) => {
+const getSession: RequestHandler = async (req, res): Promise<void> => {
   try {
     const { sessionId } = req.params;
     const sessionData = chatService.getSessionData(sessionId);
@@ -38,32 +75,36 @@ router.get("/session/:sessionId", async (req: Request, res: Response) => {
     console.error("Session endpoint error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
-});
+};
 
 // Clear/reset session
-router.post(
-  "/session/:sessionId/clear",
-  async (req: Request, res: Response) => {
-    try {
-      const { sessionId } = req.params;
-      const success = chatService.clearSession(sessionId);
+const clearSession: RequestHandler = async (req, res): Promise<void> => {
+  try {
+    const { sessionId } = req.params;
+    const success = chatService.clearSession(sessionId);
 
-      if (!success) {
-        res.status(404).json({ error: "Session not found" });
-        return;
-      }
-
-      res.json({ message: "Session cleared successfully" });
-    } catch (error) {
-      console.error("Clear session endpoint error:", error);
-      res.status(500).json({ error: "Internal server error" });
+    if (!success) {
+      res.status(404).json({ error: "Session not found" });
+      return;
     }
+
+    res.json({ message: "Session cleared successfully" });
+  } catch (error) {
+    console.error("Clear session endpoint error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
-);
+};
 
 // Health check
-router.get("/health", (_req: Request, res: Response) => {
+const healthCheck: RequestHandler = (_req, res): void => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
-});
+};
+
+// Route handlers
+router.post("/chat", handleChat);
+router.post("/question-response", handleQuestionResponse);
+router.get("/session/:sessionId", getSession);
+router.post("/session/:sessionId/clear", clearSession);
+router.get("/health", healthCheck);
 
 export default router;
